@@ -20,6 +20,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
 }));
+app.use(passport.authenticate('session'));
 
 // mongoose schema
 mongoose.connect(process.env.uri);
@@ -32,8 +33,16 @@ userSchema.plugin(passportLocalMongoose);
 const User = mongoose.model("User", userSchema);
 passport.use(User.createStrategy());
 
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.get('/', function (req, res, next) {
-    res.send('Enter Home Page');
+    if ( req.isAuthenticated() ) {
+        res.send('Enter Home Page');
+    } else {
+        res.redirect("/login");
+    }
+    
 });
 
 /* const user = new User({
@@ -41,14 +50,33 @@ app.get('/', function (req, res, next) {
     password: req.body.password
 }); */
 
+app.route('/signup').get(function(req, res, next) {
+    res.render('signup');
+}).post(function(req, res, next) {
+    User.register({ username: req.body.username }, req.body.password).then((user) => {
+        passport.authenticate("local")(req, res, function() {
+            res.redirect("/");
+        });
+    }).catch((err) => {
+        console.log(err);
+        res.redirect("/signup");
+    });
+});
+
 app.route('/login').get(function (req, res, next) {
     res.render('login');
 }).post(passport.authenticate('local', {failureRedirect: '/login'}),
     function(req, res) {
-        console.log(req.body);
         res.redirect('/');
     }
 );
+
+app.post('/logout', function(req, res, next) {
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('/login');
+    });
+})
 
 app.listen(3000 || process.env.port, function() {
     console.log("Server is running on port 3000.");
