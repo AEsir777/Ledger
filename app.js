@@ -26,8 +26,21 @@ app.use(passport.authenticate('session'));
 // mongoose schema
 mongoose.connect(process.env.uri);
 const userSchema = new Schema({
-    email: String,
-    password: String
+    email: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    // TODO: add pattern requirements for password
+    password: {
+        type: String,
+        required: true
+    },
+    role: {
+        type: String,
+        default: "Basic",
+        required: true,
+    },
 });
 
 userSchema.plugin(passportLocalMongoose);
