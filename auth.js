@@ -24,7 +24,8 @@ mongoose.connect(process.env.uri);
 const userSchema = new Schema({
     email: {
         type: String,
-        unique: true,
+        required: true,
+        unique: true
     },
     // TODO: add pattern requirements for password
     password: {
@@ -73,7 +74,11 @@ authRouter.get('/home', function (req, res, next) {
 authRouter.route('/signup').get(function (req, res, next) {
     res.render('signup');
 }).post(function (req, res, next) {
-    User.register({ username: req.body.username }, req.body.password).then((user) => {
+    const newUser = new User({
+        email: req.body.username,
+        password: req.body.password
+    })
+    User.register(newUser, req.body.password).then((user) => {
         passport.authenticate("local")(req, res, function () {
             res.redirect("/home");
         });
