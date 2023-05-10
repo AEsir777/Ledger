@@ -1,5 +1,9 @@
 import express from "express";
+import session from "express-session";
+import passport from "passport";
+
 import authRouter from "./auth.js";
+import trackerRouter from "./tracker.js";
 
 // application level middlewares
 const app = express();
@@ -7,6 +11,15 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+app.use(session({
+    secret: 'screte made by kebing',
+    resave: false,
+    saveUninitialized: false,
+}));
+app.use(passport.authenticate('session'));
+
+
+app.use('/', trackerRouter);
 app.use('/', authRouter);
 
 

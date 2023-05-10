@@ -1,5 +1,4 @@
 import express from "express";
-import session from "express-session";
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
@@ -12,12 +11,6 @@ dotenv.config();
 
 // middlewares
 const authRouter = express.Router();
-authRouter.use(session({
-    secret: 'screte made by kebing',
-    resave: false,
-    saveUninitialized: false,
-}));
-authRouter.use(passport.authenticate('session'));
 
 // mongoose schema
 mongoose.connect(process.env.uri);
@@ -56,15 +49,6 @@ passport.use(new GoogleStrategy({
 
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
-
-authRouter.get('/home', function (req, res, next) {
-    if (req.isAuthenticated()) {
-        res.send('Enter Home Page');
-    } else {
-        res.redirect("/login");
-    }
-
-});
 
 /* const user = new User({
     username: req.body.username,
