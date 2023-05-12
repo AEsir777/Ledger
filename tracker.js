@@ -22,9 +22,9 @@ const querySchema = new Schema({
         type: String
     },
     amount: {
-        type: number
+        type: Number
     },
-})
+});
 
 // schema for query related one user
 const queryCollectionSchema = new Schema({
@@ -36,12 +36,18 @@ const queryCollectionSchema = new Schema({
     queries: {
         type: [querySchema],
         default: undefined
+    },
+    unit: {
+        type: String,
+        default: "USD"
     }
 });
 
+const queryCollection = mongoose.model("queryCollection", queryCollectionSchema);
+
 function ensureAuthenticated(req, res, next) {
     if ( req.isAuthenticated() ) {
-        res.send('Enter Home Page');
+        next();
     } else {
         res.redirect("/login");
     }
@@ -52,7 +58,14 @@ trackerRouter.get('/home', ensureAuthenticated);
 
 // all income expense queries
 trackerRouter.route('/queries').get(ensureAuthenticated, async function(req, res) {
-    res.send('all query');
-}).post(ensureAuthenticated);
+    console.log(req.user);
+    await queryCollection.find({_id: req.user._id}).catch((err) => {
+        console.error(err);
+    }).then((userQuery) => {
+        res.send(userQuery.queries);
+    });
+}).post(ensureAuthenticated, async function(req, res) {
+
+});
 
 export default trackerRouter;
