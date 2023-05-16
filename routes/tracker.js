@@ -57,15 +57,24 @@ function ensureAuthenticated(req, res, next) {
 trackerRouter.get('/home', ensureAuthenticated);
 
 // all income expense queries
+// GET: get all queries
+// POST: add a new query
+// DELETE: delete all queirs
 trackerRouter.route('/queries').get(ensureAuthenticated, async function(req, res) {
     console.log(req.user);
-    await queryCollection.find({_id: req.user._id}).catch((err) => {
+    await queryCollection.find({ _id: req.user._id }).catch((err) => {
         console.error(err);
     }).then((userQuery) => {
-        res.send(userQuery.queries);
+        res.send(userQuery);
     });
 }).post(ensureAuthenticated, async function(req, res) {
-
+    // TODO - create user info while registers
+    queryCollection.findOneAndUpdate(
+        { _id: req.user._id },
+        { $push: { queries: { date: req.body.date, type: req.body.type, 
+            description: req.body.description, amount: req.body.amount } }},
+        { upsert: true }
+    );
 });
 
 export default trackerRouter;

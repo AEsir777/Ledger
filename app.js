@@ -2,8 +2,8 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 
-import authRouter from "./auth.js";
-import trackerRouter from "./tracker.js";
+import authRouter from "./routes/auth.js";
+import trackerRouter from "./routes/tracker.js";
 
 // application level middlewares
 const app = express();
