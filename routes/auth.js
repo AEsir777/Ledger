@@ -40,7 +40,7 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.clientSecret,
     callbackURL: "http://localhost:3000/auth/home"
 },
-    function (accessToken, refreshToken, profile, cb) {
+    (accessToken, refreshToken, profile, cb) => {
         User.findOrCreate({ googleId: profile.id }, function (err, user) {
             return cb(err, user);
         });
@@ -55,7 +55,7 @@ passport.deserializeUser(User.deserializeUser());
     password: req.body.password
 }); */
 
-authRouter.route('/signup').get(function (req, res, next) {
+authRouter.route('/signup').get((req, res, next) => {
     res.render('signup');
 }).post(function (req, res, next) {
     const newUser = new User({
@@ -72,7 +72,7 @@ authRouter.route('/signup').get(function (req, res, next) {
     });
 });
 
-authRouter.route('/login').get(function (req, res, next) {
+authRouter.route('/login').get((req, res, next) => {
     res.render('login');
 }).post(passport.authenticate('local', { failureRedirect: '/login' }),
     function (req, res) {
@@ -80,7 +80,7 @@ authRouter.route('/login').get(function (req, res, next) {
     }
 );
 
-authRouter.post('/logout', function (req, res, next) {
+authRouter.post('/logout', (req, res, next) => {
     req.logout(function (err) {
         if (err) { return next(err); }
         res.redirect('/login');
@@ -93,7 +93,7 @@ authRouter.get('/auth/google',
 
 authRouter.get('/auth/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
-    function (req, res) {
+    (req, res) => {
         // Successful authentication, redirect home.
         res.redirect('/');
 });

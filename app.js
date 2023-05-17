@@ -23,6 +23,6 @@ app.use('/', trackerRouter);
 app.use('/', authRouter);
 
 
-app.listen(3000 || process.env.port, function () {
+app.listen(3000 || process.env.port, () => {
     console.log("Server is running on port 3000.");
 });
