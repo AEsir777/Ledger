@@ -86,4 +86,17 @@ trackerRouter.route('/queries').get(ensureAuthenticated, async (req, res) => {
     });
 });
 
+// single income expense query
+trackerRouter.route('/queries/:id').get(ensureAuthenticated, async(req, res) => {
+    await queryCollection.find({ _id: req.user._id}, { "queries.id": req.params.id }).catch((err) => {
+        console.error(err);
+    }).then((log) => {
+        res.send(log);
+    });
+});
+// GET: get all queries
+// POST: add a new query
+// DELETE: delete all queirs
+
+
 export default trackerRouter;
