@@ -88,10 +88,23 @@ trackerRouter.route('/queries').get(ensureAuthenticated, async (req, res) => {
 
 // single income expense query
 trackerRouter.route('/queries/:id').get(ensureAuthenticated, async(req, res) => {
-    await queryCollection.find({ _id: req.user._id}, { "queries.id": req.params.id }).catch((err) => {
+    await queryCollection.find({ _id: req.user._id, "queries.id": req.params.id }).catch((err) => {
         console.error(err);
     }).then((log) => {
         res.send(log);
+    });
+}).get(ensureAuthenticated, async(req, res) => {
+    await queryCollection.findOneAndReplace({ _id: req.user._id, "queries.id": req.params.id }, {'$set': {
+        'queries.$.date': req.body.date,
+        'queries.$.type': req.body.type,
+        'queries.$.description': req.body.description,
+        'queries.$.amount': req.body.amount
+    }});
+}).delete(ensureAuthenticated, async(req, res) => {
+    await queryCollection.updateOne({ _id: req.user._id }, {
+        $pullAll: {
+            queries: [{_id: req.params.id}],
+        },
     });
 });
 // GET: get all queries
