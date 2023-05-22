@@ -100,6 +100,13 @@ trackerRouter.route('/queries/:id').get(ensureAuthenticated, async(req, res) => 
         'queries.$.description': req.body.description,
         'queries.$.amount': req.body.amount
     }});
+}).patch(ensureAuthenticated, async(req, res) => {
+    await queryCollection.findOneAndUpdate({ _id: req.user._id, "queries.id": req.params.id }, {'$set': {
+        'queries.$.date': req.body.date,
+        'queries.$.type': req.body.type,
+        'queries.$.description': req.body.description,
+        'queries.$.amount': req.body.amount
+    }});
 }).delete(ensureAuthenticated, async(req, res) => {
     await queryCollection.updateOne({ _id: req.user._id }, {
         $pullAll: {
