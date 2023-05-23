@@ -10,8 +10,13 @@ const trackerRouter = express.Router();
 // mongoose schema
 mongoose.connect(process.env.uri);
 
-// schema for one query
-const querySchema = new Schema({
+// schema for query related one user
+const eventSchema = new Schema({
+    userId: {
+        type: mongoose.Types.ObjectId,
+        required: true,
+        unique: true
+    },
     date: {
         type: Date
     },
@@ -24,26 +29,13 @@ const querySchema = new Schema({
     amount: {
         type: Number
     },
-});
-
-// schema for query related one user
-const queryCollectionSchema = new Schema({
-    user_id: {
-        type: mongoose.Types.ObjectId,
-        required: true,
-        unique: true
-    },
-    queries: {
-        type: [querySchema],
-        default: undefined
-    },
     unit: {
         type: String,
         default: "USD"
     }
 });
 
-const queryCollection = mongoose.model("queryCollection", queryCollectionSchema);
+const Event = mongoose.model("event", eventSchema);
 
 function ensureAuthenticated(req, res, next) {
     if ( req.isAuthenticated() ) {
@@ -62,61 +54,75 @@ trackerRouter.get('/home', ensureAuthenticated);
 // DELETE: delete all queirs
 trackerRouter.route('/queries').get(ensureAuthenticated, async (req, res) => {
     console.log(req.user);
-    await queryCollection.find({ _id: req.user._id }).catch((err) => {
+    await Event.find({ userId: req.user._id }).catch((err) => {
         console.error(err);
-    }).then((userQuery) => {
-        res.send(userQuery);
+    }).then((events) => {
+        res.send(events);
     });
 }).post(ensureAuthenticated, async (req, res) => {
-    queryCollection.findOneAndUpdate(
-        { _id: req.user._id },
-        { $push: { queries: { date: req.body.date, type: req.body.type, 
-            description: req.body.description, amount: req.body.amount } }},
-        { upsert: true }
-    ).then((userQuery) => {
-        res.send(userQuery);
+    const newEvent = new Event({
+        userId: req.user._id,
+        date: req.body.date, 
+        type: req.body.type, 
+        description: req.body.description, 
+        amount: req.body.amount,
+        unit: req.body.unit
+    });
+
+    await newEvent.save().catch((err) => {
+        console.error(err);
+    }).then(() => {
+        res.send("saved succesfully");
     });
 }).delete(ensureAuthenticated, async (req, res) => {
-    queryCollection.findOneAndUpdate(
-        { _id: req.user._id },
-        { $set: { queries: [] }},
-        { upsert: true }
-    ).then((userQuery) => {
-        res.send(userQuery);
+    Event.deleteMany({ userId: req.user._id },).then((result) => {
+        res.send(result);
+    }).catch((err) => {
+        console.error(err);
     });
 });
 
 // single income expense query
 trackerRouter.route('/queries/:id').get(ensureAuthenticated, async(req, res) => {
-    await queryCollection.find({ _id: req.user._id, "queries.id": req.params.id }).catch((err) => {
+    await Event.find({ _id: req.params.id, userId: req.user._id }).catch((err) => {
         console.error(err);
-    }).then((log) => {
-        res.send(log);
+    }).then((event) => {
+        res.send(event);
+    }).catch((err) => {
+        console.log(err);
     });
 }).get(ensureAuthenticated, async(req, res) => {
-    await queryCollection.findOneAndReplace({ _id: req.user._id, "queries.id": req.params.id }, {'$set': {
-        'queries.$.date': req.body.date,
-        'queries.$.type': req.body.type,
-        'queries.$.description': req.body.description,
-        'queries.$.amount': req.body.amount
-    }});
+    await Event.replaceOne({ _id: req.user._id, userId: req.user._id }, {
+        userId: req.user._id,
+        date: req.body.date, 
+        type: req.body.type, 
+        description: req.body.description, 
+        amount: req.body.amount,
+        unit: req.body.unit
+    }).then(() => {
+        res.send("sucess");
+    }).catch((err) => {
+        console.log(err);
+    });
 }).patch(ensureAuthenticated, async(req, res) => {
-    await queryCollection.findOneAndUpdate({ _id: req.user._id, "queries.id": req.params.id }, {'$set': {
-        'queries.$.date': req.body.date,
-        'queries.$.type': req.body.type,
-        'queries.$.description': req.body.description,
-        'queries.$.amount': req.body.amount
-    }});
+    await Event.updateOne({ _id: req.user._id, userId: req.user._id }, {
+        date: req.body.date, 
+        type: req.body.type, 
+        description: req.body.description, 
+        amount: req.body.amount,
+        unit: req.body.unit
+    }).then(() => {
+        res.send("success");
+    }).catch((err) => {
+        console.error(err);
+    });
 }).delete(ensureAuthenticated, async(req, res) => {
-    await queryCollection.updateOne({ _id: req.user._id }, {
-        $pullAll: {
-            queries: [{_id: req.params.id}],
-        },
+    await Event.deleteOne({ _id: req.user._id, userId: req.user._id}).then((result) => {
+        res.send("result");
+    }).catch((err) => {
+        console.error(err);
     });
 });
-// GET: get all queries
-// POST: add a new query
-// DELETE: delete all queirs
 
 
 export default trackerRouter;
