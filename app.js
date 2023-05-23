@@ -1,6 +1,10 @@
 import express from "express";
 import session from "express-session";
 import passport from "passport";
+import mongoose from "mongoose";
+
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 import authRouter from "./routes/auth.js";
 import trackerRouter from "./routes/tracker.js";
@@ -18,10 +22,10 @@ app.use(session({
 }));
 app.use(passport.authenticate('session'));
 
+mongoose.connect(process.env.uri);
 
-app.use('/', trackerRouter);
 app.use('/', authRouter);
-
+app.use('/', trackerRouter);
 
 app.listen(3000 || process.env.port, () => {
     console.log("Server is running on port 3000.");

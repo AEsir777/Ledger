@@ -1,9 +1,7 @@
 import express from "express";
-import mongoose from "mongoose";
-const Schema = mongoose.Schema;
+import User from "../models/user_model.js";
 
 import passport from "passport";
-import passportLocalMongoose from "passport-local-mongoose";
 import GoogleStrategy from "passport-google-oauth20";
 
 import * as dotenv from 'dotenv';
@@ -11,28 +9,6 @@ dotenv.config();
 
 // middlewares
 const authRouter = express.Router();
-
-// mongoose schema
-mongoose.connect(process.env.uri);
-const userSchema = new Schema({
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    // TODO: add pattern requirements for password
-    password: {
-        type: String
-    },
-    role: {
-        type: String,
-        default: "Basic",
-        required: true,
-    },
-});
-
-userSchema.plugin(passportLocalMongoose);
-const User = mongoose.model("User", userSchema);
 // register the strategy
 passport.use(User.createStrategy());
 passport.use(new GoogleStrategy({

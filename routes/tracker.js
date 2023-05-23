@@ -1,41 +1,11 @@
 import express from "express";
-import mongoose from "mongoose";
-const Schema = mongoose.Schema;
+import Event from "../models/event_model.js";
 
 import * as dotenv from 'dotenv';
 dotenv.config();
 
 // middlewares
 const trackerRouter = express.Router();
-// mongoose schema
-mongoose.connect(process.env.uri);
-
-// schema for query related one user
-const eventSchema = new Schema({
-    userId: {
-        type: mongoose.Types.ObjectId,
-        required: true,
-        unique: true
-    },
-    date: {
-        type: Date
-    },
-    type: {
-        type: String
-    },
-    description: {
-        type: String
-    },
-    amount: {
-        type: Number
-    },
-    unit: {
-        type: String,
-        default: "USD"
-    }
-});
-
-const Event = mongoose.model("event", eventSchema);
 
 function ensureAuthenticated(req, res, next) {
     if ( req.isAuthenticated() ) {
